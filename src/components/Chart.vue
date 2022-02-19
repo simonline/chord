@@ -22,7 +22,6 @@ export default {
       this.correlations.forEach(function (flow) {
         matrix[flow.to - 1][flow.from - 1] = flow.quantity;
       });
-      console.log(matrix);
       
       /*//////////////////////////////////////////////////////////
       /////////////// Initiate Chord Diagram /////////////////////
@@ -36,8 +35,9 @@ export default {
       var innerRadius = Math.min(width, height) * .39;
       var outerRadius = innerRadius * 1.08;
       
+      d3.select("svg").remove();
       var root = d3.select("#chart");
-      
+
       //Generate tooltip already, but keep it invisible for now.
       var toolTip = root.append("div")
           .classed("tooltip", true)
@@ -308,7 +308,7 @@ export default {
           })
           .style("stroke", "#333")
           .style("stroke-width", "0.5px");
-      
+
       /*//////////////////////////////////////////////////////////
           ////////////////// Extra Functions /////////////////////////
           //////////////////////////////////////////////////////////*/

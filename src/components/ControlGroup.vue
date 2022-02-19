@@ -5,7 +5,7 @@
           icon
           class="button"
           v-ripple="{ class: 'ripple' }"
-          @click="toggleItems"
+          @click="toggleShowItems"
       >
         <v-icon>
           {{ showItems ? "mdi-minus-box" : "mdi-plus-box" }}
@@ -13,7 +13,8 @@
       </v-btn>
       <v-checkbox
           class="checkbox"
-          input-value="true"
+          :input-value="items.every((i) => i.active)"
+          @change="setActiveItems($event)"
       />
       <UpdateItemModal />
       <label class="ml-2">
@@ -30,8 +31,10 @@
         class="item"
       >
         <v-checkbox
+            v-model="item.active"
             class="checkbox"
-            input-value="true"
+            :input-value="item.active"
+            @change="setActiveItem(item.ID, $event)"
         />
         <UpdateItemModal :item="item" />
         <v-tooltip right>
@@ -100,9 +103,23 @@
     }),
 
     methods: {
-      toggleItems() {
+      toggleShowItems() {
         this.showItems = !this.showItems;
-      }
+      },
+      setActiveItems(value) {
+        this.$emit("update:items", this.items.map((i) => {
+          i.active = value;
+          return i;
+        }))
+      },
+      setActiveItem(item, value) {
+        this.$emit("update:items", this.items.map((i) => {
+          if (i.ID === item.ID) {
+            item.active = value;
+          }
+          return i;
+        }))
+      },
     }
   }
 </script>

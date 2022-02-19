@@ -7,15 +7,16 @@
         absolute
     >
       <Controls
-        :objects="objects"
+        :objects.sync="objects"
       />
     </v-navigation-drawer>
     <v-main
       class="main"
     >
       <Chart
-        :objects="objects"
+        :objects="activeObjects"
         :correlations="correlations"
+        :key="activeObjects.length"
       />
     </v-main>
   </v-app>
@@ -36,23 +37,17 @@ import Chart from './components/Chart';
 import * as XLSX from "xlsx";
 import * as input_file from "../data/input.xlsx";
 
-const getCorrelations = (data, objects) => {
-  const correlations = [];
-  for (const object of objects) {
-    for (const relation of objects) {
-      if (data.length <= object.ID) continue;
-      const quantity = data[object.ID][relation.ID];
-      if (typeof quantity !== "number") continue;
-      correlations.push({
-        from: object.ID,
-        to: relation.ID,
-        quantity
-      })
-    }
-  }
-  console.log(correlations);
-  return correlations;
+const getObjects = (data) => {
+  return data.map((o) => {
+    o.active = true;
+    return o;
+  })
 }
+
+const workbook = XLSX.read(input_file);
+const objectsData = XLSX.utils.sheet_to_json(workbook.Sheets["Objekte"]);
+const correlationsData = XLSX.utils.sheet_to_json(workbook.Sheets["Korrelationen"]);
+const objects = getObjects(objectsData);
 
 export default {
   name: 'App',
@@ -63,13 +58,31 @@ export default {
   },
 
   data: () => {
-    var workbook = XLSX.read(input_file);
-    var objects = XLSX.utils.sheet_to_json(workbook.Sheets["Objekte"]);
-    var correlationsData = XLSX.utils.sheet_to_json(workbook.Sheets["Korrelationen"]);
     return {
       objects,
-      correlations: getCorrelations(correlationsData, objects),
-    };
+    }
+  },
+
+  computed: {
+    activeObjects: function () {
+      return this.objects.filter((o) => o.active);
+    },
+    correlations: function () {
+      const correlations = [];
+      for (const [i, object] of this.activeObjects.entries()) {
+        if (correlationsData.length <= object.ID) continue;
+        for (const [j, relation] of this.activeObjects.entries()) {
+          const quantity = correlationsData[object.ID][relation.ID];
+          if (typeof quantity !== "number") continue;
+          correlations.push({
+            from: i,
+            to: j,
+            quantity
+          });
+        }
+      }
+      return correlations;
+    }
   },
 };
 </script>

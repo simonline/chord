@@ -1,9 +1,10 @@
 <template>
   <v-container class="my-5">
     <ControlGroup
-        :name="family"
-        :items="items"
-        v-for="(items, family) in groups" :key="family"
+        :name="group"
+        :items.sync="groups[group]"
+        v-on:update:items="updateObjects(groups[group])"
+        v-for="group in Object.keys(groups)" :key="group"
     />
   </v-container>
 </template>
@@ -26,9 +27,16 @@ export default {
     ControlGroup,
   },
 
-  data() {
+  data: function () {
     return {
-      groups: groupObjects(this.objects, "Familie"),
+      groups: groupObjects(this.objects, "Familie")
+    }
+  },
+
+  methods: {
+    updateObjects(objects) {
+      const newObjects = objects.reduce((a, o) => Object.assign(a, { [o.ID]: o }), {});
+      this.$emit("update:objects", this.objects.map((o) => o.ID in newObjects ? newObjects[o.ID] : o));
     }
   },
 }
