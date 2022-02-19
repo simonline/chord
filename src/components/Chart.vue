@@ -14,18 +14,15 @@ export default {
   },
   methods: {
     drawChart() {
-      var matrix = [];
+      var matrix = new Array(this.objects.length).fill().map(
+          () => new Array(this.objects.length).fill().map(() => 0)
+      );
       
       //Map list of data to matrix
       this.correlations.forEach(function (flow) {
-      
-        //Initialize sub-array if not yet exists
-        if (!matrix[flow.to]) {
-          matrix[flow.to] = [];
-        }
-      
-        matrix[flow.to][flow.from] = flow.quantity;
+        matrix[flow.to - 1][flow.from - 1] = flow.quantity;
       });
+      console.log(matrix);
       
       /*//////////////////////////////////////////////////////////
       /////////////// Initiate Chord Diagram /////////////////////
@@ -199,6 +196,7 @@ export default {
       /*//////////////////////////////////////////////////////////
           ////////////////// Initiate Ticks //////////////////////////
           //////////////////////////////////////////////////////////*/
+      /*
       var ticks = g.append("svg:g")
           .selectAll("g.ticks")
           .data(groupTicks)
@@ -207,8 +205,9 @@ export default {
             return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
                 + "translate(" + outerRadius + 40 + ",0)";
           });
-      
+      */
       /*Append the tick around the arcs*/
+      /*
       ticks.append("svg:line")
           .attr("x1", 1)
           .attr("y1", 0)
@@ -217,8 +216,10 @@ export default {
           .attr("class", "ticks")
           .style("stroke", "#333")
           .style("stroke-width", "1.5px");
+      */
       
       /*Add the labels for the ticks*/
+      /*
       ticks.append("svg:text")
           .attr("class", "tickLabels")
           .attr("x", 12)
@@ -233,7 +234,7 @@ export default {
             return d.angle > Math.PI ? "end" : null;
           })
           .text(function (d) { return d.label; });
-      
+      */
       /*//////////////////////////////////////////////////////////
           ////////////////// Initiate Names //////////////////////////
           //////////////////////////////////////////////////////////*/
@@ -259,7 +260,7 @@ export default {
             else {
               x += dx;
             }
-      
+
             return "translate(" + x + ", " + y + ")";
           })
           .text((d, i) => this.objects[i].Name);
@@ -313,6 +314,7 @@ export default {
           //////////////////////////////////////////////////////////*/
       
       /*Returns an array of tick angles and labels, given a group*/
+      /*
       function groupTicks(d) {
         var anglePerPerson = (d.endAngle - d.startAngle) / d.value;
         return d3.range(0, d.value, 100).map(function (v, i) {
@@ -322,6 +324,7 @@ export default {
           };
         });
       }
+      */
       
       //Hides all chords except the chords connecting to the subgroup /
       //location of the given index.

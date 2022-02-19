@@ -36,18 +36,21 @@ import Chart from './components/Chart';
 import * as XLSX from "xlsx";
 import * as input_file from "../data/input.xlsx";
 
-const getCorrelations = (data) => {
+const getCorrelations = (data, objects) => {
   const correlations = [];
-  for (const row of data) {
-    for (const [i, quantity] in Object.entries(row)) {
+  for (const object of objects) {
+    for (const relation of objects) {
+      if (data.length <= object.ID) continue;
+      const quantity = data[object.ID][relation.ID];
       if (typeof quantity !== "number") continue;
       correlations.push({
-        from: row.__EMPTY,
-        to: i + 1,
+        from: object.ID,
+        to: relation.ID,
         quantity
       })
     }
   }
+  console.log(correlations);
   return correlations;
 }
 
@@ -65,7 +68,7 @@ export default {
     var correlationsData = XLSX.utils.sheet_to_json(workbook.Sheets["Korrelationen"]);
     return {
       objects,
-      correlations: getCorrelations(correlationsData),
+      correlations: getCorrelations(correlationsData, objects),
     };
   },
 };
