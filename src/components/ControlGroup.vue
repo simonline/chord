@@ -16,7 +16,10 @@
           :input-value="items.every((i) => i.active)"
           @change="setActiveItems($event)"
       />
-      <UpdateItemModal />
+      <UpdateItemModal
+          :items.sync="coloredItems"
+          v-on:update:items="updateItems(coloredItems)"
+      />
       <label class="ml-2">
         {{ name }}
       </label>
@@ -36,7 +39,10 @@
             :input-value="item.active"
             @change="setActiveItem(item.ID, $event)"
         />
-        <UpdateItemModal :item="item" />
+        <UpdateItemModal
+            :item.sync="item"
+            v-on:update:item="updateItem(item)"
+        />
         <v-tooltip right>
           <template v-slot:activator="{ on, attrs }">
             <label
@@ -98,9 +104,12 @@
       UpdateItemModal,
     },
 
-    data: () => ({
-      showItems: false
-    }),
+    data() {
+      return {
+        showItems: false,
+        coloredItems: [...this.items],
+      }
+    },
 
     methods: {
       toggleShowItems() {
@@ -120,6 +129,16 @@
           return i;
         }))
       },
+      updateItems(items) {
+        console.log("Group update items");
+
+        this.$emit("update:items", items);
+      },
+      updateItem(item) {
+        this.$emit("update:items", this.items.map((i) => {
+          return i.ID === item.ID ? item : i;
+        }));
+      }
     }
   }
 </script>

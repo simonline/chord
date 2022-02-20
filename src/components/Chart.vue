@@ -27,8 +27,8 @@ export default {
       /////////////// Initiate Chord Diagram /////////////////////
       //////////////////////////////////////////////////////////*/
       var size = window.innerHeight;
-      var dr = 40; //radial translation for group names
-      var dx = 20; //horizontal translation for group names
+      // var dr = 40; //radial translation for group names
+      // var dx = 20; //horizontal translation for group names
       var margin = { top: 20, right: 20, bottom: 20, left: 20 };
       var width = size - margin.left - margin.right;
       var height = size - margin.top - margin.bottom;
@@ -39,6 +39,7 @@ export default {
       var root = d3.select("#chart");
 
       //Generate tooltip already, but keep it invisible for now.
+      /*
       var toolTip = root.append("div")
           .classed("tooltip", true)
           .style("opacity", 0)
@@ -51,7 +52,7 @@ export default {
           .style("border", "1px solid gray")
           .style("border-radius", "8px")
           .style("pointer-events", "none");
-      
+      */
       var focusedChordGroupIndex = null;
       
       /*Initiate the SVG*/
@@ -86,13 +87,31 @@ export default {
       
       g.append("svg:path")
           .attr("d", arc)
+          .attr("id", (d, i) => "group-" + i)
           .style("fill", (d) => this.objects[d.index].Farbe)
           .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
           .on("click", function (d) { highlightChords(d.index) })
-          .on("mouseover", function(d) {
+          /*.on("mouseover", function(d) {
             showArcToolTip(d);
           })
           .on("mouseout", function() { hideToolTip() });
+          */
+
+      g.append("text")
+          .each(function(d) { d.angle = (d.startAngle + d.endAngle) / 2; })
+          .attr("dy", ".35em")
+          .attr("class", "titles")
+          .attr("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; })
+          .attr("transform", function(d) {
+            return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
+                + "translate(" + (outerRadius + 10) + ")"
+                + (d.angle > Math.PI ? "rotate(180)" : "");
+          })
+          .style("font-size", "12px")
+          .style("font-family", "'Roboto Condensed'")
+          .style("font-weight", "400'")
+          .attr("fill", "#333")
+          .text((d, i) => this.objects[i].Name);
 
       /*//////////////////////////////////////////////////////////
       //////////////// Initiate inner chords /////////////////////
@@ -133,7 +152,7 @@ export default {
                 d3.select(this).style("fill-opacity", 1);
               }
 
-              showChordToolTip(d);
+              // showChordToolTip(d);
             }
           })
           .on("mouseout", function() {
@@ -149,7 +168,7 @@ export default {
                   .style("stroke-opacity", 1);
             }
 
-            hideToolTip();
+            // hideToolTip();
           });
 
       //Cf https://www.visualcinnamon.com/2016/06/orientation-gradient-d3-chord-diagram
@@ -238,13 +257,32 @@ export default {
       /*//////////////////////////////////////////////////////////
           ////////////////// Initiate Names //////////////////////////
           //////////////////////////////////////////////////////////*/
-      g.append("svg:text")
-          .each(function (d) { d.angle = (d.startAngle + d.endAngle) / 2; })
-          .attr("dy", ".35em")
+      /*g.append("svg:text")
+          //.each(function (d) { d.angle = (d.startAngle + d.endAngle) / 2; })
+          .attr("x", function (d) {
+            const angle = d.angle + ((3 * Math.PI) / 2);
+            return outerRadius * Math.cos(angle);
+          })
+          .attr("y", function (d) {
+            const angle = d.angle + ((3 * Math.PI) / 2);
+            return outerRadius * Math.sin(angle);
+          })
+          .attr("x", 6)
+          .attr("dy", 15)
+          .append("textPath")
+          .attr("xlink:href", (d, i) => "group-" + i)
+          // .attr("text-anchor", (d) => (d.angle < Math.PI ? "start" : "end"))
+          /*.attr("transform", function(d) {
+            const angle = d.angle + ((3 * Math.PI) / 2);
+            return Math.sin(angle);
+          })
+
           .attr("class", "titles")
-          .style("font-size", "14px")
+          .style("font-size", "12px")
           .style("font-family", "sans-serif")
           .attr("fill", "#333")
+          .text((d, i) => this.objects[i].Name);
+          /*
           .attr("text-anchor", function (d) {
             return d.angle > Math.PI ? "end" : null;
           })
@@ -263,11 +301,11 @@ export default {
 
             return "translate(" + x + ", " + y + ")";
           })
-          .text((d, i) => this.objects[i].Name);
-      
-      /*Lines from labels to arcs*/
+          */
+        /*Lines from labels to arcs*/
       /*part in radial direction*/
       // this.g.append("line")
+      /*
       g.append("line")
           .attr("x1", function (d) {
             return outerRadius * Math.cos(d.angle + ((3 * Math.PI) / 2));
@@ -283,9 +321,10 @@ export default {
           })
           .style("stroke", "#333")
           .style("stroke-width", "0.5px");
-      
+      */
       /*horizontal part*/
       // this.g.append("line")
+      /*
       g.append("line")
           .attr("x1", function (d) {
             return (outerRadius + dr) * Math.cos(d.angle + ((3 * Math.PI) / 2));
@@ -308,7 +347,7 @@ export default {
           })
           .style("stroke", "#333")
           .style("stroke-width", "0.5px");
-
+      */
       /*//////////////////////////////////////////////////////////
           ////////////////// Extra Functions /////////////////////////
           //////////////////////////////////////////////////////////*/
@@ -361,7 +400,7 @@ export default {
             .style("fill-opacity", "0")
             .style("stroke-opacity", "0");
       }
-      
+      /*
       const showChordToolTip = (chord) => {
         var prompt = "";
       
@@ -399,6 +438,8 @@ export default {
       function hideToolTip() {
         toolTip.style("opacity", 0);
       }
+
+      */
       
       ////////////////////////////////////////////////////////////
       //////////// Custom Chord Layout Function //////////////////

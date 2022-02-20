@@ -8,6 +8,7 @@
     >
       <Controls
         :objects.sync="objects"
+        :key="generateKey()"
       />
     </v-navigation-drawer>
     <v-main
@@ -16,7 +17,7 @@
       <Chart
         :objects="activeObjects"
         :correlations="correlations"
-        :key="activeObjects.length"
+        :key="generateKey()"
       />
     </v-main>
   </v-app>
@@ -84,5 +85,12 @@ export default {
       return correlations;
     }
   },
+
+  methods: {
+    generateKey() {
+      const colors = this.activeObjects.map((o) => o.Farbe).join("");
+      return `${this.activeObjects.length}-${colors}`;
+    }
+  }
 };
 </script>

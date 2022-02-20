@@ -11,7 +11,9 @@
           v-bind="attrs"
           v-on="on"
       >
-        <v-icon>
+        <v-icon
+          :color="color"
+        >
           mdi-pencil-box-outline
         </v-icon>
       </v-btn>
@@ -27,6 +29,7 @@
           <v-row>
             <v-col cols="12">
               <v-color-picker
+                  v-model="color"
                   dot-size="25"
                   swatches-max-height="200"
                   mode="hexa"
@@ -46,7 +49,7 @@
         </v-btn>
         <v-btn
             text
-            @click="dialog = false"
+            @click="setColor()"
         >
           Speichern
         </v-btn>
@@ -64,13 +67,29 @@
 
 <script>
   export default {
-    props: ["item"],
+    props: ["item", "items"],
 
-    data: () => ({
-      dialog: false
-    }),
+    data() {
+      return {
+        dialog: false,
+        color: this.item ? this.item.Farbe : this.items[0].Farbe,
+      }
+    },
 
     methods: {
+      setColor() {
+        this.dialog = false;
+        console.log(this.color);
+        if (this.item) {
+          const coloredItem = {...this.item, Farbe: this.color};
+          this.$emit("update:item", coloredItem);
+        } else {
+          this.$emit("update:items", this.items.map((i) => {
+            i.Farbe = this.color;
+            return i;
+          }));
+        }
+      },
     }
   }
 </script>
