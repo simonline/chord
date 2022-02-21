@@ -12,7 +12,8 @@
           v-on="on"
       >
         <v-icon
-          :color="color"
+            class="icon"
+            :style="{ 'background-color': color }"
         >
           mdi-pencil-box-outline
         </v-icon>
@@ -62,6 +63,12 @@
 .button {
   width: 24px !important;
   height: 24px !important;
+}
+.icon {
+  height: 18px !important;
+  font-size: 24px !important;
+  width: 18px !important;
+  border-radius: 2px !important;
 }
 </style>
 

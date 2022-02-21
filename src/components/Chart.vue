@@ -1,6 +1,37 @@
 <template>
-  <div id="chart"></div>
+  <v-container>
+    <div id="chart">
+      <v-alert
+          v-model="alert"
+          dismissible
+          width="400"
+          color="#766bf5"
+          id="alert"
+          border="left"
+          icon="mdi-information"
+          v-show="false"
+          colored-border
+          light
+          outlined
+      >
+        <span></span>
+      </v-alert>
+
+    </div>
+
+  </v-container>
 </template>
+
+<style>
+#chart {
+  position: relative !important;
+}
+#alert {
+  position: absolute !important;
+  right: 0;
+  bottom: 0;
+}
+</style>
 
 <script>
 import * as d3 from "d3";
@@ -89,8 +120,9 @@ export default {
           .attr("d", arc)
           .attr("id", (d, i) => "group-" + i)
           .style("fill", (d) => this.objects[d.index].Farbe)
-          .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
-          .on("click", function (d) { highlightChords(d.index) })
+          // .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
+          .on("mouseover", function (d) { highlightChords(d.index) })
+          // .on("click", function () { })
           /*.on("mouseover", function(d) {
             showArcToolTip(d);
           })
@@ -130,11 +162,11 @@ export default {
           .style("fill", function (d) {
             return "url(#chordGradient-" + d.source.index + "-" + d.target.index + ")";
           })
-          .style("stroke", function (d) {
-            return "url(#chordGradient-" + d.source.index + "-" + d.target.index + ")";
-          })
+          // .style("stroke", function (d) {
+          //   return "url(#chordGradient-" + d.source.index + "-" + d.target.index + ")";
+          // })
           .style("fill-opacity", "0.7")
-          .on("mouseover", function(d) {
+          /*.on("mouseover", function(d) {
             if (focusedChordGroupIndex === null ||
                 d.source.index === focusedChordGroupIndex ||
                 d.target.index === focusedChordGroupIndex) {
@@ -170,6 +202,7 @@ export default {
 
             // hideToolTip();
           });
+          */
 
       //Cf https://www.visualcinnamon.com/2016/06/orientation-gradient-d3-chord-diagram
       //Create a gradient definition for each chord
@@ -367,7 +400,7 @@ export default {
       
       //Hides all chords except the chords connecting to the subgroup /
       //location of the given index.
-      function highlightChords(index) {
+      const highlightChords = (index) => {
         //If this subgroup is already highlighted, toggle all chords back on.
         if (focusedChordGroupIndex === index) {
           showAllChords();
@@ -379,17 +412,19 @@ export default {
         //Show only the ones with source or target == index
         d3.selectAll(".chord-source-" + index + ", .chord-target-" + index)
             .transition().duration(500)
-            .style("fill-opacity", "0.7")
-            .style("stroke-opacity", "1");
+            .style("fill-opacity", "1");
       
         focusedChordGroupIndex = index;
+
+        const alert = document.getElementById("alert");
+        alert.style.display = "block";
+        alert.getElementsByTagName('span')[0].innerHTML = this.objects[index].Beschreibung;
       }
       
       function showAllChords() {
         svg.selectAll("path.chord")
             .transition().duration(500)
-            .style("fill-opacity", "0.7")
-            .style("stroke-opacity", "1");
+            .style("fill-opacity", ".7");
       
         focusedChordGroupIndex = null;
       }
@@ -397,8 +432,7 @@ export default {
       function hideAllChords() {
         svg.selectAll("path.chord")
             .transition().duration(500)
-            .style("fill-opacity", "0")
-            .style("stroke-opacity", "0");
+            .style("fill-opacity", ".1");
       }
       /*
       const showChordToolTip = (chord) => {
