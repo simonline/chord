@@ -57,7 +57,7 @@ export default {
       /*//////////////////////////////////////////////////////////
       /////////////// Initiate Chord Diagram /////////////////////
       //////////////////////////////////////////////////////////*/
-      var size = window.innerHeight;
+      var size = window.innerHeight - 40;
       // var dr = 40; //radial translation for group names
       // var dx = 20; //horizontal translation for group names
       var margin = { top: 20, right: 20, bottom: 20, left: 20 };

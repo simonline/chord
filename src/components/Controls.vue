@@ -1,13 +1,26 @@
 <template>
   <v-container class="my-5">
     <ControlGroup
-        :name="group"
-        :items.sync="groups[group]"
-        v-on:update:items="updateObjects(groups[group])"
-        v-for="group in Object.keys(groups)" :key="group"
+      :name="group"
+      :items.sync="groups[group]"
+      v-on:update:items="updateObjects(groups[group])"
+      v-for="group in Object.keys(groups)" :key="group"
     />
+    <v-chip
+      class="version"
+    >
+      Version {{ this.$store.state.packageVersion }}
+    </v-chip>
   </v-container>
 </template>
+
+<style>
+.version {
+  position: fixed !important;
+  bottom: 20px;
+  left: 20px;
+}
+</style>
 
 <script>
 import ControlGroup from "./ControlGroup";
