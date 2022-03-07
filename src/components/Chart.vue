@@ -51,7 +51,7 @@ export default {
       
       //Map list of data to matrix
       this.correlations.forEach(function (flow) {
-        matrix[flow.to - 1][flow.from - 1] = flow.quantity;
+        matrix[flow.to][flow.from] = flow.quantity;
       });
       
       /*//////////////////////////////////////////////////////////
