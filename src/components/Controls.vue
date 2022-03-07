@@ -3,7 +3,9 @@
     <ControlGroup
       :name="group"
       :items.sync="groups[group]"
+      :showItems="showGroup === group"
       v-on:update:items="updateObjects(groups[group])"
+      v-on:update:showItems="updateShowGroup(group)"
       v-for="group in Object.keys(groups)" :key="group"
     />
     <v-chip
@@ -34,7 +36,7 @@ const groupObjects = (objects, groupBy) => {
 }
 
 export default {
-  props: ["objects"],
+  props: ["objects", "showGroup"],
 
   components: {
     ControlGroup,
@@ -42,7 +44,7 @@ export default {
 
   data: function () {
     return {
-      groups: groupObjects(this.objects, "Familie")
+      groups: groupObjects(this.objects, "Familie"),
     }
   },
 
@@ -50,7 +52,10 @@ export default {
     updateObjects(objects) {
       const newObjects = objects.reduce((a, o) => Object.assign(a, { [o.ID]: o }), {});
       this.$emit("update:objects", this.objects.map((o) => o.ID in newObjects ? newObjects[o.ID] : o));
-    }
+    },
+    updateShowGroup(group) {
+      this.$emit("update:showGroup", group !== this.showGroup ? group : "");
+    },
   },
 }
 </script>

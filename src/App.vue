@@ -8,6 +8,7 @@
     >
       <Controls
         :objects.sync="objects"
+        :showGroup.sync="showGroup"
         :key="generateKey()"
       />
     </v-navigation-drawer>
@@ -61,6 +62,7 @@ export default {
   data: () => {
     return {
       objects,
+      showGroup: "",
     }
   },
 

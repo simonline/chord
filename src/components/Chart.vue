@@ -84,7 +84,7 @@ export default {
           .style("border-radius", "8px")
           .style("pointer-events", "none");
       */
-      var focusedChordGroupIndex = null;
+      // var focusedChordGroupIndex = null;
       
       /*Initiate the SVG*/
       //D3.js v3!
@@ -95,7 +95,10 @@ export default {
       var container = svg.append("g")
           .attr("transform", "translate(" +
               (margin.left + width / 2) + "," +
-              (margin.top + height / 2) + ")");
+              (margin.top + height / 2) + ")")
+          .on("click", function () {
+            showAllChords();
+          });
       
       var chord = customChordLayout()
           .padding(0.04)
@@ -118,8 +121,12 @@ export default {
       
       g.append("svg:path")
           .attr("d", arc)
-          .attr("id", (d, i) => "group-" + i)
+          .attr("id", (d, i) => "arc-" + i)
+          .attr("class", function (d) {
+            return "arcs " + d.relations.map((r) => "arc-rel-" + r).join(" ");
+          })
           .style("fill", (d) => this.objects[d.index].Farbe)
+          .style("cursor", "pointer")
           // .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
           .on("mouseover", function (d) { highlightChords(d.index) })
           // .on("click", function () { })
@@ -132,7 +139,10 @@ export default {
       g.append("text")
           .each(function(d) { d.angle = (d.startAngle + d.endAngle) / 2; })
           .attr("dy", ".35em")
-          .attr("class", "titles")
+          .attr("class", function (d) {
+            return "titles " + d.relations.map((r) => "title-rel-" + r).join(" ");
+          })
+          .attr("id", (d, i) => "title-" + i)
           .attr("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; })
           .attr("transform", function(d) {
             return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
@@ -141,9 +151,11 @@ export default {
           })
           .style("font-size", "12px")
           .style("font-family", "'Roboto Condensed'")
-          .style("font-weight", "400'")
+          .style("font-weight", "400")
+          .style("cursor", "pointer")
           .attr("fill", "#333")
-          .text((d, i) => this.objects[i].Name);
+          .text((d, i) => this.objects[i].Name)
+          .on("mouseover", function (d) { highlightChords(d.index) });
 
       /*//////////////////////////////////////////////////////////
       //////////////// Initiate inner chords /////////////////////
@@ -397,40 +409,62 @@ export default {
         });
       }
       */
+
+      //Update alert with description
+      const showAlert = (index) => {
+        const alert = document.getElementById("alert");
+        const object = this.objects[index];
+        const border = alert.getElementsByClassName("v-alert__border")[0];
+        const icon = alert.getElementsByClassName("mdi-close-circle")[0];
+        border.style.borderColor = object.Farbe;
+        icon.style.color = object.Farbe;
+        icon.style.caretColor = object.Farbe;
+        var content = [
+          object.Beschreibung,
+          `<i>${object.Familie}</i>`,
+        ];
+        alert.getElementsByTagName('span')[0].innerHTML = content.join("<br>");
+        alert.style.display = "block";
+      }
+
+      //Hide alert with description
+      const hideAlert = () => {
+        const alert = document.getElementById("alert");
+        alert.style.display = "none";
+      }
       
       //Hides all chords except the chords connecting to the subgroup /
       //location of the given index.
       const highlightChords = (index) => {
         //If this subgroup is already highlighted, toggle all chords back on.
-        if (focusedChordGroupIndex === index) {
-          showAllChords();
-          return;
-        }
+        // if (focusedChordGroupIndex === index) {
+        //   showAllChords();
+        //   return;
+        // }
       
         hideAllChords();
       
         //Show only the ones with source or target == index
-        d3.selectAll(".chord-source-" + index + ", .chord-target-" + index)
+        d3.selectAll(`#title-${index}, .title-rel-${index}, #arc-${index}, .arc-rel-${index}, .chord-source-${index}, .chord-target-${index}`)
             .transition().duration(500)
             .style("fill-opacity", "1");
       
-        focusedChordGroupIndex = index;
+        // focusedChordGroupIndex = index;
 
-        const alert = document.getElementById("alert");
-        alert.style.display = "block";
-        alert.getElementsByTagName('span')[0].innerHTML = this.objects[index].Beschreibung;
+        showAlert(index);
       }
       
       function showAllChords() {
-        svg.selectAll("path.chord")
+        svg.selectAll("path.titles, path.arcs, path.chord")
             .transition().duration(500)
             .style("fill-opacity", ".7");
-      
-        focusedChordGroupIndex = null;
+
+        hideAlert();
+        // focusedChordGroupIndex = null;
       }
       
       function hideAllChords() {
-        svg.selectAll("path.chord")
+        svg.selectAll("text.titles, path.arcs, path.chord")
             .transition().duration(500)
             .style("fill-opacity", ".1");
       }
@@ -504,7 +538,7 @@ export default {
             j = -1;
             numSeq = [];
             while (++j < n) {
-              x += matrix[i][j];
+              x += matrix[i][j] || matrix[j][i];
             }
             groupSums.push(x);
             //////////////////////////////////////
@@ -527,10 +561,11 @@ export default {
             x0 = x;
             j = -1;
             var di = 0;
+            var relatedIndexes = [];
             while (++j < n) {
               di = groupIndex[i];
               var dj = subgroupIndex[di][j];
-              var v = matrix[di][dj];
+              var v = matrix[di][dj] || matrix[dj][di];
               var a0 = x;
               var a1 = x += v * k;
               subgroups[di + "-" + dj] = {
@@ -540,13 +575,15 @@ export default {
                 endAngle: a1,
                 value: v
               };
+              (v || matrix[dj][di]) && relatedIndexes.push(dj);
             }//while
       
             groups[di] = {
               index: di,
               startAngle: x0,
               endAngle: x,
-              value: (x - x0) / k
+              value: (x - x0) / k,
+              relations: relatedIndexes,
             };
             x += padding;
           }//while

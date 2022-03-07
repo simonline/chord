@@ -98,7 +98,7 @@
   import UpdateItemModal from "./UpdateItemModal";
 
   export default {
-    props: ["name", "items"],
+    props: ["name", "items", "showItems"],
 
     components: {
       UpdateItemModal,
@@ -106,14 +106,13 @@
 
     data() {
       return {
-        showItems: false,
         coloredItems: [...this.items],
       }
     },
 
     methods: {
       toggleShowItems() {
-        this.showItems = !this.showItems;
+        this.$emit("update:showItems", !this.showItems)
       },
       setActiveItems(value) {
         this.$emit("update:items", this.items.map((i) => {
@@ -130,8 +129,6 @@
         }))
       },
       updateItems(items) {
-        console.log("Group update items");
-
         this.$emit("update:items", items);
       },
       updateItem(item) {
