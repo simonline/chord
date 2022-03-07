@@ -455,7 +455,10 @@ export default {
       }
       
       function showAllChords() {
-        svg.selectAll("path.titles, path.arcs, path.chord")
+        svg.selectAll("text.titles, path.arcs")
+            .transition().duration(500)
+            .style("fill-opacity", "1");
+        svg.selectAll("path.chord")
             .transition().duration(500)
             .style("fill-opacity", ".7");
 
