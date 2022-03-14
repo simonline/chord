@@ -59,8 +59,8 @@ export default {
     updateShowGroup(group) {
       this.$emit("update:showGroup", group !== this.showGroup ? group : "");
     },
-    updateHighlightItem(index) {
-      this.$emit("update:highlightItem", index);
+    updateHighlightItem(itemId) {
+      this.$emit("update:highlightItem", itemId);
     },
   },
 }

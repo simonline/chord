@@ -45,7 +45,7 @@
         />
           <label
             class="ml-2"
-            @mouseover="updateHighlightItem(item.ID-1)"
+            @mouseover="updateHighlightItem(item.ID)"
           >
             {{ item.Name }}
           </label>
@@ -122,8 +122,8 @@
           return i;
         }))
       },
-      updateHighlightItem(index) {
-        this.$emit("update:highlightItem", index);
+      updateHighlightItem(itemId) {
+        this.$emit("update:highlightItem", itemId);
       },
       updateItems(items) {
         this.$emit("update:items", items);

@@ -776,8 +776,9 @@ export default {
     },
   },
   watch: {
-    highlightItem: function(newVal) {
-      this.highlightChords(newVal);
+    highlightItem: function(itemId) {
+      const index = this.objects.findIndex(i => i.ID === itemId);
+      index > -1 && this.highlightChords(index);
     }
   }
 }
