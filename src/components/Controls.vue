@@ -4,8 +4,10 @@
       :name="group"
       :items.sync="groups[group]"
       :showItems="showGroup === group"
+      :highlightItem.sync="controlsHighlightItem"
       v-on:update:items="updateObjects(groups[group])"
       v-on:update:showItems="updateShowGroup(group)"
+      v-on:update:highlightItem="updateHighlightItem(controlsHighlightItem)"
       v-for="group in Object.keys(groups)" :key="group"
     />
     <v-chip
@@ -36,7 +38,7 @@ const groupObjects = (objects, groupBy) => {
 }
 
 export default {
-  props: ["objects", "showGroup"],
+  props: ["objects", "showGroup", "highlightItem"],
 
   components: {
     ControlGroup,
@@ -45,6 +47,7 @@ export default {
   data: function () {
     return {
       groups: groupObjects(this.objects, "Familie"),
+      controlsHighlightItem: this.highlightItem,
     }
   },
 
@@ -55,6 +58,9 @@ export default {
     },
     updateShowGroup(group) {
       this.$emit("update:showGroup", group !== this.showGroup ? group : "");
+    },
+    updateHighlightItem(index) {
+      this.$emit("update:highlightItem", index);
     },
   },
 }

@@ -2,7 +2,6 @@
   <v-container>
     <div id="chart">
       <v-alert
-          v-model="alert"
           dismissible
           width="400"
           color="#766bf5"
@@ -30,6 +29,7 @@
   position: absolute !important;
   right: 0;
   bottom: 0;
+  font-size: 12px;
 }
 </style>
 
@@ -37,23 +37,82 @@
 import * as d3 from "d3";
 
 export default {
-  props: ["objects", "correlations"],
+  props: ["objects", "correlations", "highlightItem"],
   data: () => ({
+    svg: null
   }),
   mounted() {
     this.drawChart();
   },
   methods: {
+
+    //Update alert with description
+    showAlert(index) {
+      const alert = document.getElementById("alert");
+      const object = this.objects[index];
+      const border = alert.getElementsByClassName("v-alert__border")[0];
+      const icon = alert.getElementsByClassName("mdi-close-circle")[0];
+      border.style.borderColor = object.Farbe;
+      icon.style.color = object.Farbe;
+      icon.style.caretColor = object.Farbe;
+      var content = [
+        `<strong>${object.Name}</strong>`,
+        object.Beschreibung,
+        `<i>${object.Familie}</i>`,
+      ];
+      alert.getElementsByTagName('span')[0].innerHTML = content.join("<br>");
+      alert.style.display = "block";
+    },
+
+    //Hide alert with description
+    hideAlert() {
+      const alert = document.getElementById("alert");
+      alert.style.display = "none";
+    },
+
+    //Hides all chords except the chords connecting to the subgroup /
+    //location of the given index.
+    highlightChords(index) {
+      this.hideAllChords();
+
+      //Show only the ones with source or target == index
+      d3.selectAll(`#title-${index}, .title-rel-${index}, #arc-${index}, .arc-rel-${index}, .chord-source-${index}, .chord-target-${index}`)
+          .transition().duration(500)
+          .style("fill-opacity", "1");
+
+      // focusedChordGroupIndex = index;
+
+      this.showAlert(index);
+    },
+
+    showAllChords() {
+      d3.selectAll("text.titles, path.arcs")
+          .transition().duration(500)
+          .style("fill-opacity", "1");
+      d3.selectAll("path.chord")
+          .transition().duration(500)
+          .style("fill-opacity", ".7");
+
+      this.hideAlert();
+      // focusedChordGroupIndex = null;
+    },
+
+    hideAllChords() {
+      d3.selectAll("text.titles, path.arcs, path.chord")
+          .transition().duration(500)
+          .style("fill-opacity", ".1");
+    },
+
     drawChart() {
       var matrix = new Array(this.objects.length).fill().map(
           () => new Array(this.objects.length).fill().map(() => 0)
       );
-      
+
       //Map list of data to matrix
       this.correlations.forEach(function (flow) {
         matrix[flow.to][flow.from] = flow.quantity;
       });
-      
+
       /*//////////////////////////////////////////////////////////
       /////////////// Initiate Chord Diagram /////////////////////
       //////////////////////////////////////////////////////////*/
@@ -65,7 +124,7 @@ export default {
       var height = size - margin.top - margin.bottom;
       var innerRadius = Math.min(width, height) * .39;
       var outerRadius = innerRadius * 1.08;
-      
+
       d3.select("svg").remove();
       var root = d3.select("#chart");
 
@@ -85,40 +144,40 @@ export default {
           .style("pointer-events", "none");
       */
       // var focusedChordGroupIndex = null;
-      
+
       /*Initiate the SVG*/
       //D3.js v3!
       var svg = root.append("svg:svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom);
-      
+
       var container = svg.append("g")
           .attr("transform", "translate(" +
               (margin.left + width / 2) + "," +
               (margin.top + height / 2) + ")")
-          .on("click", function () {
-            showAllChords();
+          .on("click", () => {
+            this.showAllChords();
           });
-      
+
       var chord = customChordLayout()
           .padding(0.04)
           .sortSubgroups(d3.descending) /*sort the chords inside an arc from high to low*/
           .sortChords(d3.ascending) /*which chord should be shown on top when chords cross. Now the largest chord is at the top*/
           .matrix(matrix);
-      
+
       /*//////////////////////////////////////////////////////////
       ////////////////// Draw outer Arcs /////////////////////////
       //////////////////////////////////////////////////////////*/
       var arc = d3.svg.arc()
           .innerRadius(innerRadius)
           .outerRadius(outerRadius);
-      
+
       var g = container.selectAll("g.group")
           .data(chord.groups)
           .enter()
           .append("svg:g")
           .attr("class", (d) => "group group-" + this.objects[d.index].ID);
-      
+
       g.append("svg:path")
           .attr("d", arc)
           .attr("id", (d, i) => "arc-" + i)
@@ -128,7 +187,7 @@ export default {
           .style("fill", (d) => this.objects[d.index].Farbe)
           .style("cursor", "pointer")
           // .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
-          .on("mouseover", function (d) { highlightChords(d.index) })
+          .on("mouseover", (d) => this.highlightChords(d.index))
           // .on("click", function () { })
           /*.on("mouseover", function(d) {
             showArcToolTip(d);
@@ -155,7 +214,7 @@ export default {
           .style("cursor", "pointer")
           .attr("fill", "#333")
           .text((d, i) => this.objects[i].Name)
-          .on("mouseover", function (d) { highlightChords(d.index) });
+          .on("mouseover", (d) => this.highlightChords(d.index));
 
       /*//////////////////////////////////////////////////////////
       //////////////// Initiate inner chords /////////////////////
@@ -255,8 +314,8 @@ export default {
       grads.append("stop")
           .attr("offset", "100%")
           .attr("stop-color", (d) => this.objects[d.target.index].Farbe);
-      
-      
+
+
       /*//////////////////////////////////////////////////////////
           ////////////////// Initiate Ticks //////////////////////////
           //////////////////////////////////////////////////////////*/
@@ -281,7 +340,7 @@ export default {
           .style("stroke", "#333")
           .style("stroke-width", "1.5px");
       */
-      
+
       /*Add the labels for the ticks*/
       /*
       ticks.append("svg:text")
@@ -336,7 +395,7 @@ export default {
             var angle = d.angle + ((3 *Math.PI) / 2);
             var x = r * Math.cos(angle);
             var y = r * Math.sin(angle);
-      
+
             if (d.angle > Math.PI) {
               x -= dx;
             }
@@ -396,7 +455,7 @@ export default {
       /*//////////////////////////////////////////////////////////
           ////////////////// Extra Functions /////////////////////////
           //////////////////////////////////////////////////////////*/
-      
+
       /*Returns an array of tick angles and labels, given a group*/
       /*
       function groupTicks(d) {
@@ -410,71 +469,10 @@ export default {
       }
       */
 
-      //Update alert with description
-      const showAlert = (index) => {
-        const alert = document.getElementById("alert");
-        const object = this.objects[index];
-        const border = alert.getElementsByClassName("v-alert__border")[0];
-        const icon = alert.getElementsByClassName("mdi-close-circle")[0];
-        border.style.borderColor = object.Farbe;
-        icon.style.color = object.Farbe;
-        icon.style.caretColor = object.Farbe;
-        var content = [
-          object.Beschreibung,
-          `<i>${object.Familie}</i>`,
-        ];
-        alert.getElementsByTagName('span')[0].innerHTML = content.join("<br>");
-        alert.style.display = "block";
-      }
-
-      //Hide alert with description
-      const hideAlert = () => {
-        const alert = document.getElementById("alert");
-        alert.style.display = "none";
-      }
-      
-      //Hides all chords except the chords connecting to the subgroup /
-      //location of the given index.
-      const highlightChords = (index) => {
-        //If this subgroup is already highlighted, toggle all chords back on.
-        // if (focusedChordGroupIndex === index) {
-        //   showAllChords();
-        //   return;
-        // }
-      
-        hideAllChords();
-      
-        //Show only the ones with source or target == index
-        d3.selectAll(`#title-${index}, .title-rel-${index}, #arc-${index}, .arc-rel-${index}, .chord-source-${index}, .chord-target-${index}`)
-            .transition().duration(500)
-            .style("fill-opacity", "1");
-      
-        // focusedChordGroupIndex = index;
-
-        showAlert(index);
-      }
-      
-      function showAllChords() {
-        svg.selectAll("text.titles, path.arcs")
-            .transition().duration(500)
-            .style("fill-opacity", "1");
-        svg.selectAll("path.chord")
-            .transition().duration(500)
-            .style("fill-opacity", ".7");
-
-        hideAlert();
-        // focusedChordGroupIndex = null;
-      }
-      
-      function hideAllChords() {
-        svg.selectAll("text.titles, path.arcs, path.chord")
-            .transition().duration(500)
-            .style("fill-opacity", ".1");
-      }
       /*
       const showChordToolTip = (chord) => {
         var prompt = "";
-      
+
         if (chord.source.index !== chord.target.index) {
           prompt += chord.source.value + " Kunden gingen von " +
               this.objects[chord.target.index].Name + " nach " +
@@ -488,30 +486,30 @@ export default {
           prompt += chord.source.value + " Kunden blieben in " +
               this.objects[chord.source.index].Name + ".";
         }
-      
+
         toolTip
             .style("opacity", 1)
             .html(prompt)
             .style("left", d3.event.pageX - toolTip.node().getBoundingClientRect().width / 2 + "px")
             .style("top", (d3.event.pageY - 50) + "px");
       }
-      
+
       const showArcToolTip = (arc) => {
         var prompt = Math.round(arc.value) + " Kunden befinden sich in " + this.objects[arc.index].Name + ".";
-      
+
         toolTip
             .style("opacity", 1)
             .html(prompt)
             .style("left", d3.event.pageX - toolTip.node().getBoundingClientRect().width / 2 + "px")
             .style("top", (d3.event.pageY - 30) + "px");
       }
-      
+
       function hideToolTip() {
         toolTip.style("opacity", 0);
       }
 
       */
-      
+
       ////////////////////////////////////////////////////////////
       //////////// Custom Chord Layout Function //////////////////
       /////// Places the Chords in the visually best order ///////
@@ -535,7 +533,7 @@ export default {
           groups = [];
           k = 0;
           i = -1;
-      
+
           while (++i < n) {
             x = 0;
             j = -1;
@@ -556,7 +554,7 @@ export default {
             //////////////////////////////////////
             k += x;
           }//while
-      
+
           k = (τ - padding * n) / k;
           x = 0;
           i = -1;
@@ -580,7 +578,7 @@ export default {
               };
               (v || matrix[dj][di]) && relatedIndexes.push(dj);
             }//while
-      
+
             groups[di] = {
               index: di,
               startAngle: x0,
@@ -590,7 +588,7 @@ export default {
             };
             x += padding;
           }//while
-      
+
           i = -1;
           while (++i < n) {
             j = i - 1;
@@ -609,7 +607,7 @@ export default {
           }//while
           if (sortChords) resort();
         }//function relayout
-      
+
         function resort() {
           chords.sort(function (a, b) {
             return sortChords((a.source.value + a.target.value) / 2, (b.source.value + b.target.value) / 2);
@@ -655,7 +653,7 @@ export default {
         };
         return chord;
       }
-      
+
       ////////////////////////////////////////////////////////////
       //////////// Custom Chord Path Generator ///////////////////
       ///////// Uses cubic bezier curves with quadratic //////////
@@ -775,6 +773,11 @@ export default {
 
         return chord;
       }
+    },
+  },
+  watch: {
+    highlightItem: function(newVal) {
+      this.highlightChords(newVal);
     }
   }
 }

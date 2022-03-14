@@ -43,18 +43,12 @@
             :item.sync="item"
             v-on:update:item="updateItem(item)"
         />
-        <v-tooltip right>
-          <template v-slot:activator="{ on, attrs }">
-            <label
-                v-bind="attrs"
-                v-on="on"
-                class="ml-2"
-            >
-              {{ item.Name }}
-            </label>
-          </template>
-          <span>{{ item.Beschreibung }}</span>
-        </v-tooltip>
+          <label
+            class="ml-2"
+            @mouseover="updateHighlightItem(item.ID-1)"
+          >
+            {{ item.Name }}
+          </label>
       </v-row>
     </v-container>
   </v-container>
@@ -98,7 +92,7 @@
   import UpdateItemModal from "./UpdateItemModal";
 
   export default {
-    props: ["name", "items", "showItems"],
+    props: ["name", "items", "showItems", "highlightItem"],
 
     components: {
       UpdateItemModal,
@@ -127,6 +121,9 @@
           }
           return i;
         }))
+      },
+      updateHighlightItem(index) {
+        this.$emit("update:highlightItem", index);
       },
       updateItems(items) {
         this.$emit("update:items", items);
