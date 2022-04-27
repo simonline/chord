@@ -37,9 +37,11 @@
 import * as d3 from "d3";
 
 export default {
-  props: ["objects", "correlations", "highlightItem"],
+  props: ["objects", "correlations", "highlightItem", "indirect"],
   data: () => ({
-    svg: null
+    svg: null,
+    matrix: [],
+    highlightedItems: [],
   }),
   mounted() {
     this.drawChart();
@@ -72,45 +74,118 @@ export default {
 
     //Hides all chords except the chords connecting to the subgroup /
     //location of the given index.
-    highlightChords(index) {
+    highlightChords(index, permanent = true) {
+      const items = [...this.highlightedItems];
+      if (!items.includes(index)) {
+        if (!this.indirect || items.length < 2) {
+          items.push(index);
+        }
+      } else {
+        // Deselect if already highlighted
+        items.splice(items.indexOf(index), 1);
+      }
+      if (items !== this.highlightedItems) {
+        if (permanent) {
+          this.highlightedItems = items;
+        }
+      } else {
+        return;
+      }
+
+      if (items.length === 0) {
+        this.showAllChords();
+        return;
+      }
+
+      let selector = [];
+      if (this.indirect && items.length === 2) {
+        const getRels = (index) => {
+          const rels = this.matrix.reduce(
+              (out, to, i) => to[index] ? out.concat(i) : out,
+              []
+          );
+          rels.push(...this.matrix[index].reduce(
+              (out, from, i) => from ? out.concat(i) : out,
+              []
+          ));
+          return rels;
+        }
+        for (const sourceItem of items) {
+          selector.push(...[
+            `#title-${sourceItem}`,
+            `#arc-${sourceItem}`,
+          ]);
+          const sourceRels = getRels(sourceItem);
+          for (const targetItem of items) {
+            if (sourceItem === targetItem) continue;
+            const targetRels = getRels(targetItem);
+            const intersections = sourceRels.filter(value => targetRels.includes(value));
+            for (const intersection of intersections) {
+                selector.push(...[
+                  `#title-${intersection}`,
+                  `#arc-${intersection}`,
+                  `.chord-source-${sourceItem}.chord-target-${intersection}`,
+                  `.chord-source-${targetItem}.chord-target-${intersection}`,
+                  `.chord-source-${intersection}.chord-target-${sourceItem}`,
+                  `.chord-source-${intersection}.chord-target-${targetItem}`,
+                ]);
+            }
+          }
+        }
+      } else {
+        for (const item of items) {
+          selector.push(...[
+            `#title-${item}`,
+            `.title-rel-${item}`,
+            `#arc-${item}`,
+            `.arc-rel-${item}`,
+            `.chord-source-${item}`,
+            `.chord-target-${item}`
+          ]);
+        }
+      }
+
       this.hideAllChords();
+      d3.selectAll(selector.join(", "))
+        .transition().duration(500)
+        .style("fill-opacity", "1");
+      d3.selectAll(items.map((i) => `#title-${i}`).join(", "))
+        .style("font-weight", "bold");
 
-      //Show only the ones with source or target == index
-      d3.selectAll(`#title-${index}, .title-rel-${index}, #arc-${index}, .arc-rel-${index}, .chord-source-${index}, .chord-target-${index}`)
-          .transition().duration(500)
-          .style("fill-opacity", "1");
-
-      // focusedChordGroupIndex = index;
-
-      this.showAlert(index);
+      if (items.length === 1) {
+        this.showAlert(items[0]);
+      } else {
+        this.hideAlert();
+      }
     },
 
     showAllChords() {
       d3.selectAll("text.titles, path.arcs")
           .transition().duration(500)
-          .style("fill-opacity", "1");
+          .style("fill-opacity", "1")
+          .style("font-weight", "normal");
       d3.selectAll("path.chord")
           .transition().duration(500)
           .style("fill-opacity", ".7");
 
       this.hideAlert();
-      // focusedChordGroupIndex = null;
     },
 
     hideAllChords() {
       d3.selectAll("text.titles, path.arcs, path.chord")
-          .transition().duration(500)
-          .style("fill-opacity", ".1");
+        .transition().duration(500)
+        .style("fill-opacity", ".1")
+        .style("font-weight", "normal");
     },
 
     drawChart() {
-      var matrix = new Array(this.objects.length).fill().map(
+      this.matrix = new Array(this.objects.length).fill().map(
           () => new Array(this.objects.length).fill().map(() => 0)
       );
 
       //Map list of data to matrix
-      this.correlations.forEach(function (flow) {
-        matrix[flow.to][flow.from] = flow.quantity;
+      this.correlations.forEach((flow) => {
+        this.matrix[flow.to][flow.from] = flow.quantity;
       });
 
       /*//////////////////////////////////////////////////////////
@@ -154,16 +229,14 @@ export default {
       var container = svg.append("g")
           .attr("transform", "translate(" +
               (margin.left + width / 2) + "," +
-              (margin.top + height / 2) + ")")
-          .on("click", () => {
-            this.showAllChords();
-          });
+              (margin.top + height / 2) + ")");
+          // .on("click", (d) => { this.highlightChords(d.index); });
 
       var chord = customChordLayout()
           .padding(0.04)
           .sortSubgroups(d3.descending) /*sort the chords inside an arc from high to low*/
           .sortChords(d3.ascending) /*which chord should be shown on top when chords cross. Now the largest chord is at the top*/
-          .matrix(matrix);
+          .matrix(this.matrix);
 
       /*//////////////////////////////////////////////////////////
       ////////////////// Draw outer Arcs /////////////////////////
@@ -187,7 +260,7 @@ export default {
           .style("fill", (d) => this.objects[d.index].Farbe)
           .style("cursor", "pointer")
           // .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
-          .on("mouseover", (d) => this.highlightChords(d.index))
+          .on("click", (d) => this.highlightChords(d.index))
           // .on("click", function () { })
           /*.on("mouseover", function(d) {
             showArcToolTip(d);
@@ -214,7 +287,7 @@ export default {
           .style("cursor", "pointer")
           .attr("fill", "#333")
           .text((d, i) => this.objects[i].Name)
-          .on("mouseover", (d) => this.highlightChords(d.index));
+          .on("click", (d) => this.highlightChords(d.index));
 
       /*//////////////////////////////////////////////////////////
       //////////////// Initiate inner chords /////////////////////
@@ -778,7 +851,7 @@ export default {
   watch: {
     highlightItem: function(itemId) {
       const index = this.objects.findIndex(i => i.ID === itemId);
-      index > -1 && this.highlightChords(index);
+      index > -1 && this.highlightChords(index, false);
     }
   }
 }

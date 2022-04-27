@@ -10,16 +10,24 @@
       v-on:update:highlightItem="updateHighlightItem(controlsHighlightItem)"
       v-for="group in Object.keys(groups)" :key="group"
     />
-    <v-chip
-      class="version"
-    >
-      Version {{ this.$store.state.packageVersion }}
-    </v-chip>
+    <div class="bottom">
+      <v-switch
+        class="indirect"
+        v-bind:input-value="indirect"
+        :label="`${indirect ? 'Indirekte Verbindungen (2 Hops)' : 'Direkte Verbindungen (1 Hop)'}`"
+        v-on:change="updateIndirect"
+      ></v-switch>
+      <v-chip
+        class="version"
+      >
+        Version {{ this.$store.state.packageVersion }}
+      </v-chip>
+    </div>
   </v-container>
 </template>
 
 <style>
-.version {
+.bottom {
   position: fixed !important;
   bottom: 20px;
   left: 20px;
@@ -38,7 +46,7 @@ const groupObjects = (objects, groupBy) => {
 }
 
 export default {
-  props: ["objects", "showGroup", "highlightItem"],
+  props: ["objects", "showGroup", "highlightItem", "indirect"],
 
   components: {
     ControlGroup,
@@ -61,6 +69,9 @@ export default {
     },
     updateHighlightItem(itemId) {
       this.$emit("update:highlightItem", itemId);
+    },
+    updateIndirect(indirect) {
+      this.$emit("update:indirect", !!indirect);
     },
   },
 }

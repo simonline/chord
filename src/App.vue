@@ -10,6 +10,7 @@
         :objects.sync="objects"
         :showGroup.sync="showGroup"
         :highlightItem.sync="highlightItem"
+        :indirect.sync="indirect"
         :key="generateKey()"
       />
     </v-navigation-drawer>
@@ -20,6 +21,7 @@
         :objects="activeObjects"
         :correlations="correlations"
         :highlightItem.sync="highlightItem"
+        :indirect="indirect"
         :key="generateKey()"
       />
     </v-main>
@@ -61,7 +63,8 @@ export default {
       objects: [],
       correlationsData: {},
       showGroup: "",
-      highlightItem: null
+      highlightItem: null,
+      indirect: false,
     }
   },
 
@@ -103,7 +106,7 @@ export default {
   methods: {
     generateKey() {
       const colors = this.activeObjects.map((o) => o.Farbe).join("");
-      return `${this.activeObjects.length}-${colors}`;
+      return `${this.activeObjects.length}-${colors}-${this.indirect}`;
     }
   }
 };
