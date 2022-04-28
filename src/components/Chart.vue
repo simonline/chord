@@ -97,38 +97,40 @@ export default {
         return;
       }
 
+      const getRelations = (index) => {
+        const rels = this.matrix.reduce(
+            (out, to, i) => to[index] ? out.concat(i) : out,
+            []
+        );
+        rels.push(...this.matrix[index].reduce(
+            (out, from, i) => from ? out.concat(i) : out,
+            []
+        ));
+        return rels;
+      }
+
       let selector = [];
       if (this.indirect && items.length === 2) {
-        const getRels = (index) => {
-          const rels = this.matrix.reduce(
-              (out, to, i) => to[index] ? out.concat(i) : out,
-              []
-          );
-          rels.push(...this.matrix[index].reduce(
-              (out, from, i) => from ? out.concat(i) : out,
-              []
-          ));
-          return rels;
-        }
+        // Select only relations linking between the two items
         for (const sourceItem of items) {
           selector.push(...[
             `#title-${sourceItem}`,
             `#arc-${sourceItem}`,
           ]);
-          const sourceRels = getRels(sourceItem);
+          const sourceRels = getRelations(sourceItem);
           for (const targetItem of items) {
             if (sourceItem === targetItem) continue;
-            const targetRels = getRels(targetItem);
+            const targetRels = getRelations(targetItem);
             const intersections = sourceRels.filter(value => targetRels.includes(value));
             for (const intersection of intersections) {
-                selector.push(...[
-                  `#title-${intersection}`,
-                  `#arc-${intersection}`,
-                  `.chord-source-${sourceItem}.chord-target-${intersection}`,
-                  `.chord-source-${targetItem}.chord-target-${intersection}`,
-                  `.chord-source-${intersection}.chord-target-${sourceItem}`,
-                  `.chord-source-${intersection}.chord-target-${targetItem}`,
-                ]);
+              selector.push(...[
+                `#title-${intersection}`,
+                `#arc-${intersection}`,
+                `.chord-source-${sourceItem}.chord-target-${intersection}`,
+                `.chord-source-${targetItem}.chord-target-${intersection}`,
+                `.chord-source-${intersection}.chord-target-${sourceItem}`,
+                `.chord-source-${intersection}.chord-target-${targetItem}`,
+              ]);
             }
           }
         }
@@ -142,6 +144,18 @@ export default {
             `.chord-source-${item}`,
             `.chord-target-${item}`
           ]);
+          if (this.indirect) {
+            for (const rel of getRelations(item)) {
+              selector.push(...[
+                `#title-${rel}`,
+                `.title-rel-${rel}`,
+                `#arc-${rel}`,
+                `.arc-rel-${rel}`,
+                `.chord-source-${rel}`,
+                `.chord-target-${rel}`
+              ]);
+            }
+          }
         }
       }
 
