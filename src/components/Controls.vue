@@ -15,7 +15,7 @@
         <v-list-item
           key="file"
         >
-          <v-list-item-title @click="$refs.file.click()">
+          <v-list-item-title @click="$refs.file.click()" class="file-input">
             Datei hochladen
             <input type="file" ref="file" @change="updateFile" style="display: none">
           </v-list-item-title>
@@ -49,7 +49,7 @@
         v-bind:input-value="indirect"
         :label="`${indirect ? 'Indirekte Verbindungen (2 Hops)' : 'Direkte Verbindungen (1 Hop)'}`"
         v-on:change="updateIndirect"
-        v-if="file || url"
+        v-if="!!objects.length"
       ></v-switch>
       <v-chip
         class="version"
@@ -67,7 +67,7 @@
   left: 20px;
 }
 .file-input {
-  display: inline-block;
+  cursor: pointer;
 }
 </style>
 

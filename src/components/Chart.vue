@@ -247,7 +247,7 @@ export default {
           // .on("click", (d) => { this.highlightChords(d.index); });
 
       var chord = customChordLayout()
-          .padding(0.04)
+          .padding(0.03)
           .sortSubgroups(d3.descending) /*sort the chords inside an arc from high to low*/
           .sortChords(d3.ascending) /*which chord should be shown on top when chords cross. Now the largest chord is at the top*/
           .matrix(this.matrix);
@@ -641,7 +641,6 @@ export default {
             //////////////////////////////////////
             k += x;
           }//while
-
           k = (τ - padding * n) / k;
           x = 0;
           i = -1;
