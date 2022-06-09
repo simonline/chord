@@ -11,6 +11,8 @@
         :showGroup.sync="showGroup"
         :highlightItem.sync="highlightItem"
         :indirect.sync="indirect"
+        v-on:update:file="loadFile"
+        v-on:update:url="loadURL"
         :key="generateKey()"
       />
     </v-navigation-drawer>
@@ -69,16 +71,9 @@ export default {
   },
 
   mounted() {
-    const url = "./input.xlsx";
-    fetch(url)
-        .then(r => r.arrayBuffer())
-        .then(data => {
-          const workbook = XLSX.read(data);
-          this.objectsData = XLSX.utils.sheet_to_json(workbook.Sheets["Objekte"]);
-          this.correlationsData = XLSX.utils.sheet_to_json(workbook.Sheets["Korrelationen"]);
-          this.objects = getObjects(this.objectsData);
-          console.log(this.objects);
-        });
+    if (window.location.hash) {
+      this.loadURL(decodeURIComponent(window.location.hash.slice(1)));
+    }
   },
 
   computed: {
@@ -107,7 +102,21 @@ export default {
     generateKey() {
       const colors = this.activeObjects.map((o) => o.Farbe).join("");
       return `${this.activeObjects.length}-${colors}-${this.indirect}`;
-    }
+    },
+
+    loadFile(data, url) {
+      const workbook = XLSX.read(data);
+      this.objectsData = XLSX.utils.sheet_to_json(workbook.Sheets["Objekte"]);
+      this.correlationsData = XLSX.utils.sheet_to_json(workbook.Sheets["Korrelationen"]);
+      this.objects = getObjects(this.objectsData);
+      window.location.hash = url ? encodeURIComponent(url) : "";
+    },
+
+    loadURL(url) {
+      fetch(url)
+        .then(r => r.arrayBuffer())
+        .then((file) => this.loadFile(file, url));
+    },
   }
 };
 </script>

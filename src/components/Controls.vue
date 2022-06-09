@@ -1,5 +1,38 @@
 <template>
   <v-container class="my-5">
+    <v-menu offset-y>
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          light
+          v-bind="attrs"
+          v-on="on"
+          class="mb-4"
+        >
+          Öffnen
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item
+          key="file"
+        >
+          <v-list-item-title @click="$refs.file.click()">
+            Datei hochladen
+            <input type="file" ref="file" @change="updateFile" style="display: none">
+          </v-list-item-title>
+        </v-list-item>
+        <v-list-item
+          key="url"
+        >
+          <v-list-item-title>
+            <OpenUrlModal
+              url.sync="url"
+              v-on:update:url="updateURL"
+            />
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
     <ControlGroup
       :name="group"
       :items.sync="groups[group]"
@@ -16,6 +49,7 @@
         v-bind:input-value="indirect"
         :label="`${indirect ? 'Indirekte Verbindungen (2 Hops)' : 'Direkte Verbindungen (1 Hop)'}`"
         v-on:change="updateIndirect"
+        v-if="file || url"
       ></v-switch>
       <v-chip
         class="version"
@@ -32,10 +66,14 @@
   bottom: 20px;
   left: 20px;
 }
+.file-input {
+  display: inline-block;
+}
 </style>
 
 <script>
 import ControlGroup from "./ControlGroup";
+import OpenUrlModal from "./OpenUrlModal";
 
 const groupObjects = (objects, groupBy) => {
   return objects.reduce(function (r, o) {
@@ -46,10 +84,11 @@ const groupObjects = (objects, groupBy) => {
 }
 
 export default {
-  props: ["objects", "showGroup", "highlightItem", "indirect"],
+  props: ["objects", "showGroup", "highlightItem", "indirect", "file", "url"],
 
   components: {
     ControlGroup,
+    OpenUrlModal,
   },
 
   data: function () {
@@ -72,6 +111,16 @@ export default {
     },
     updateIndirect(indirect) {
       this.$emit("update:indirect", !!indirect);
+    },
+    updateFile() {
+      const files = this.$refs.file.files;
+      if (files.length === 0) return;
+      let reader = new FileReader();
+      reader.readAsArrayBuffer(files[0]);
+      reader.onload = () => this.$emit("update:file", reader.result);
+    },
+    updateURL(url) {
+      this.$emit("update:url", url);
     },
   },
 }
