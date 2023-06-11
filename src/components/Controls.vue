@@ -51,11 +51,25 @@
         v-on:change="updateIndirect"
         v-if="!!objects.length"
       ></v-switch>
-      <v-chip
-        class="version"
-      >
-        Version {{ this.$store.state.packageVersion }}
-      </v-chip>
+      <div class="d-flex flex-row">
+        <v-sheet class="d-flex flex-row" style="background: transparent">
+          <v-sheet style="background: transparent">
+            <a class="mt-3" rel="license" href="http://creativecommons.org/licenses/by/3.0/de/">
+              <img alt="Creative Commons Lizenzvertrag" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/de/88x31.png" />
+            </a>
+          </v-sheet>
+          <v-sheet class="mx-2" style="background: transparent; line-height: .9em;">
+            <small>
+              Prof. Dr. Peter Dürr<br>& Simon Liedtke
+            </small>
+          </v-sheet>
+        </v-sheet>
+        <v-chip
+          class="version mb-2"
+        >
+          Version {{ this.$store.state.packageVersion }}
+        </v-chip>
+      </div>
     </div>
   </v-container>
 </template>

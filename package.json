@@ -2,6 +2,10 @@
   "name": "chord",
   "version": "1.0.7",
   "private": true,
+  "author": "Simon Liedtke <liedtke@hm.edu>",
+  "contributors": [
+    "Prof. Dr. Peter Dürr <peter.duerr@hm.edu>"
+  ],
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
