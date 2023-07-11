@@ -54,7 +54,7 @@
       <div class="d-flex flex-row">
         <v-sheet class="d-flex flex-row" style="background: transparent">
           <v-sheet style="background: transparent">
-            <a class="mt-3" rel="license" href="http://creativecommons.org/licenses/by/3.0/de/">
+            <a class="mt-3" rel="license" href="http://creativecommons.org/licenses/by/3.0/de/" target="_blank">
               <img alt="Creative Commons Lizenzvertrag" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/de/88x31.png" />
             </a>
           </v-sheet>
