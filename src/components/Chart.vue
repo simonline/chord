@@ -1,18 +1,8 @@
 <template>
   <v-container>
     <div id="chart">
-      <v-alert
-          dismissible
-          width="400"
-          color="#766bf5"
-          id="alert"
-          border="left"
-          icon="mdi-information"
-          v-show="false"
-          colored-border
-          light
-          outlined
-      >
+      <v-alert dismissible width="400" color="#766bf5" id="alert" border="left" icon="mdi-information" v-show="false"
+        colored-border light outlined>
         <span></span>
       </v-alert>
 
@@ -25,11 +15,13 @@
 #chart {
   position: relative !important;
 }
+
 #alert {
   position: absolute !important;
   right: 0;
   bottom: 0;
   font-size: 12px;
+  background-color: #fff !important;
 }
 </style>
 
@@ -99,12 +91,12 @@ export default {
 
       const getRelations = (index) => {
         const rels = this.matrix.reduce(
-            (out, to, i) => to[index] ? out.concat(i) : out,
-            []
+          (out, to, i) => to[index] ? out.concat(i) : out,
+          []
         );
         rels.push(...this.matrix[index].reduce(
-            (out, from, i) => from ? out.concat(i) : out,
-            []
+          (out, from, i) => from ? out.concat(i) : out,
+          []
         ));
         return rels;
       }
@@ -175,12 +167,12 @@ export default {
 
     showAllChords() {
       d3.selectAll("text.titles, path.arcs")
-          .transition().duration(500)
-          .style("fill-opacity", "1")
-          .style("font-weight", "normal");
+        .transition().duration(500)
+        .style("fill-opacity", "1")
+        .style("font-weight", "normal");
       d3.selectAll("path.chord")
-          .transition().duration(500)
-          .style("fill-opacity", ".7");
+        .transition().duration(500)
+        .style("fill-opacity", ".7");
 
       this.hideAlert();
     },
@@ -194,7 +186,7 @@ export default {
 
     drawChart() {
       this.matrix = new Array(this.objects.length).fill().map(
-          () => new Array(this.objects.length).fill().map(() => 0)
+        () => new Array(this.objects.length).fill().map(() => 0)
       );
 
       //Map list of data to matrix
@@ -237,170 +229,178 @@ export default {
       /*Initiate the SVG*/
       //D3.js v3!
       var svg = root.append("svg:svg")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom);
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
 
       var container = svg.append("g")
-          .attr("transform", "translate(" +
-              (margin.left + width / 2) + "," +
-              (margin.top + height / 2) + ")");
-          // .on("click", (d) => { this.highlightChords(d.index); });
+        .attr("transform", "translate(" +
+          (margin.left + width / 2) + "," +
+          (margin.top + height / 2) + ")");
+      // .on("click", (d) => { this.highlightChords(d.index); });
 
       var chord = customChordLayout()
-          .padding(0.03)
-          .sortSubgroups(d3.descending) /*sort the chords inside an arc from high to low*/
-          .sortChords(d3.ascending) /*which chord should be shown on top when chords cross. Now the largest chord is at the top*/
-          .matrix(this.matrix);
+        .padding(0.03)
+        .sortSubgroups(d3.descending) /*sort the chords inside an arc from high to low*/
+        .sortChords(d3.ascending) /*which chord should be shown on top when chords cross. Now the largest chord is at the top*/
+        .matrix(this.matrix);
 
       /*//////////////////////////////////////////////////////////
       ////////////////// Draw outer Arcs /////////////////////////
       //////////////////////////////////////////////////////////*/
       var arc = d3.svg.arc()
-          .innerRadius(innerRadius)
-          .outerRadius(outerRadius);
+        .innerRadius(innerRadius)
+        .outerRadius(outerRadius);
 
       var g = container.selectAll("g.group")
-          .data(chord.groups)
-          .enter()
-          .append("svg:g")
-          .attr("class", (d) => "group group-" + this.objects[d.index].ID);
+        .data(chord.groups)
+        .enter()
+        .append("svg:g")
+        .attr("class", (d) => "group group-" + this.objects[d.index].ID);
 
       g.append("svg:path")
-          .attr("d", arc)
-          .attr("id", (d, i) => "arc-" + i)
-          .attr("class", function (d) {
-            return "arcs " + d.relations.map((r) => "arc-rel-" + r).join(" ");
-          })
-          .style("fill", (d) => this.objects[d.index].Farbe)
-          .style("cursor", "pointer")
-          // .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
-          .on("click", (d) => this.highlightChords(d.index))
-          // .on("click", function () { })
-          /*.on("mouseover", function(d) {
-            showArcToolTip(d);
-          })
-          .on("mouseout", function() { hideToolTip() });
-          */
+        .attr("d", arc)
+        .attr("id", (d, i) => "arc-" + i)
+        .attr("class", function (d) {
+          return "arcs " + d.relations.map((r) => "arc-rel-" + r).join(" ");
+        })
+        .style("fill", (d) => this.objects[d.index].Farbe)
+        .style("cursor", "pointer")
+        // .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
+        .on("click", (d) => this.highlightChords(d.index))
+        .on("mouseover", (d) => {
+          console.log(d.index);
+          this.highlightChords(d.index, false)
+        });
+      // .on("click", function () { })
+      /*.on("mouseover", function(d) {
+        showArcToolTip(d);
+      })
+      .on("mouseout", function() { hideToolTip() });
+      */
 
       g.append("text")
-          .each(function(d) { d.angle = (d.startAngle + d.endAngle) / 2; })
-          .attr("dy", ".35em")
-          .attr("class", function (d) {
-            return "titles " + d.relations.map((r) => "title-rel-" + r).join(" ");
-          })
-          .attr("id", (d, i) => "title-" + i)
-          .attr("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; })
-          .attr("transform", function(d) {
-            return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
-                + "translate(" + (outerRadius + 10) + ")"
-                + (d.angle > Math.PI ? "rotate(180)" : "");
-          })
-          .style("font-size", "12px")
-          .style("font-family", "'Roboto Condensed'")
-          .style("font-weight", "400")
-          .style("cursor", "pointer")
-          .attr("fill", "#333")
-          .text((d, i) => this.objects[i].Name)
-          .on("click", (d) => this.highlightChords(d.index));
+        .each(function (d) { d.angle = (d.startAngle + d.endAngle) / 2; })
+        .attr("dy", ".35em")
+        .attr("class", function (d) {
+          return "titles " + d.relations.map((r) => "title-rel-" + r).join(" ");
+        })
+        .attr("id", (d, i) => "title-" + i)
+        .attr("text-anchor", function (d) { return d.angle > Math.PI ? "end" : null; })
+        .attr("transform", function (d) {
+          return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
+            + "translate(" + (outerRadius + 10) + ")"
+            + (d.angle > Math.PI ? "rotate(180)" : "");
+        })
+        .style("font-size", "12px")
+        .style("font-family", "'Roboto Condensed'")
+        .style("font-weight", "400")
+        .style("cursor", "pointer")
+        .attr("fill", "#333")
+        .text((d, i) => this.objects[i].Name)
+        .on("click", (d) => this.highlightChords(d.index))
+        .on("mouseover", (d) => {
+          console.log(d.index);
+          this.highlightChords(d.index, false)
+        });
 
       /*//////////////////////////////////////////////////////////
       //////////////// Initiate inner chords /////////////////////
       //////////////////////////////////////////////////////////*/
       // var chords = container.selectAll("path.chord")
       container.selectAll("path.chord")
-          .data(chord.chords)
-          .enter()
-          .append("svg:path")
-          .attr("class", function (d) {
-            return "chord chord-source-" + d.source.index + " chord-target-" + d.target.index;
-          })
-          .attr("d", customChordPathGenerator().radius(innerRadius))
-          //Change the fill to reference the unique gradient ID
-          //of the source-target combination
-          .style("fill", function (d) {
-            return "url(#chordGradient-" + d.source.index + "-" + d.target.index + ")";
-          })
-          // .style("stroke", function (d) {
-          //   return "url(#chordGradient-" + d.source.index + "-" + d.target.index + ")";
-          // })
-          .style("fill-opacity", "0.7")
-          /*.on("mouseover", function(d) {
-            if (focusedChordGroupIndex === null ||
-                d.source.index === focusedChordGroupIndex ||
-                d.target.index === focusedChordGroupIndex) {
-              if (focusedChordGroupIndex === null) {
-                d3.selectAll(".chord")
-                    .style("fill-opacity", 0.2)
-                    .style("stroke-opacity", 0.2);
-                d3.select(this).style("fill-opacity", 1);
-              }
-              else {
-                d3.selectAll(".chord.chord-source-" + focusedChordGroupIndex + ", " +
-                    ".chord.chord-target-" + focusedChordGroupIndex)
-                    .style("fill-opacity", 0.2)
-                    .style("stroke-opacity", 0.2);
-                d3.select(this).style("fill-opacity", 1);
-              }
+        .data(chord.chords)
+        .enter()
+        .append("svg:path")
+        .attr("class", function (d) {
+          return "chord chord-source-" + d.source.index + " chord-target-" + d.target.index;
+        })
+        .attr("d", customChordPathGenerator().radius(innerRadius))
+        //Change the fill to reference the unique gradient ID
+        //of the source-target combination
+        .style("fill", function (d) {
+          return "url(#chordGradient-" + d.source.index + "-" + d.target.index + ")";
+        })
+        // .style("stroke", function (d) {
+        //   return "url(#chordGradient-" + d.source.index + "-" + d.target.index + ")";
+        // })
+        .style("fill-opacity", "0.7")
+      /*.on("mouseover", function(d) {
+        if (focusedChordGroupIndex === null ||
+            d.source.index === focusedChordGroupIndex ||
+            d.target.index === focusedChordGroupIndex) {
+          if (focusedChordGroupIndex === null) {
+            d3.selectAll(".chord")
+                .style("fill-opacity", 0.2)
+                .style("stroke-opacity", 0.2);
+            d3.select(this).style("fill-opacity", 1);
+          }
+          else {
+            d3.selectAll(".chord.chord-source-" + focusedChordGroupIndex + ", " +
+                ".chord.chord-target-" + focusedChordGroupIndex)
+                .style("fill-opacity", 0.2)
+                .style("stroke-opacity", 0.2);
+            d3.select(this).style("fill-opacity", 1);
+          }
 
-              // showChordToolTip(d);
-            }
-          })
-          .on("mouseout", function() {
-            if (focusedChordGroupIndex === null) {
-              d3.selectAll(".chord")
-                  .style("fill-opacity", 0.7)
-                  .style("stroke-opacity", 1);
-            }
-            else {
-              d3.selectAll(".chord.chord-source-" + focusedChordGroupIndex + ", " +
-                  ".chord.chord-target-" + focusedChordGroupIndex)
-                  .style("fill-opacity", 0.7)
-                  .style("stroke-opacity", 1);
-            }
+          // showChordToolTip(d);
+        }
+      })
+      .on("mouseout", function() {
+        if (focusedChordGroupIndex === null) {
+          d3.selectAll(".chord")
+              .style("fill-opacity", 0.7)
+              .style("stroke-opacity", 1);
+        }
+        else {
+          d3.selectAll(".chord.chord-source-" + focusedChordGroupIndex + ", " +
+              ".chord.chord-target-" + focusedChordGroupIndex)
+              .style("fill-opacity", 0.7)
+              .style("stroke-opacity", 1);
+        }
 
-            // hideToolTip();
-          });
-          */
+        // hideToolTip();
+      });
+      */
 
       //Cf https://www.visualcinnamon.com/2016/06/orientation-gradient-d3-chord-diagram
       //Create a gradient definition for each chord
       var grads = svg.append("defs").selectAll("linearGradient")
-          .data(chord.chords)
-          .enter().append("linearGradient")
-          //Create a unique gradient id per chord: e.g. "chordGradient-0-4"
-          .attr("id", function (d) {
-            return "chordGradient-" + d.source.index + "-" + d.target.index;
-          })
-          //Instead of the object bounding box, use the entire SVG for setting this.objects
-          //in pixel this.objects instead of percentages (which is more typical)
-          .attr("gradientUnits", "userSpaceOnUse")
-          //The full mathematical formula to find the x and y this.objects
-          .attr("x1", function (d) {
-            return innerRadius * Math.cos((d.source.endAngle - d.source.startAngle) / 2 +
-                d.source.startAngle - Math.PI / 2);
-          })
-          .attr("y1", function (d) {
-            return innerRadius * Math.sin((d.source.endAngle - d.source.startAngle) / 2 +
-                d.source.startAngle - Math.PI / 2);
-          })
-          .attr("x2", function (d) {
-            return innerRadius * Math.cos((d.target.endAngle - d.target.startAngle) / 2 +
-                d.target.startAngle - Math.PI / 2);
-          })
-          .attr("y2", function (d) {
-            return innerRadius * Math.sin((d.target.endAngle - d.target.startAngle) / 2 +
-                d.target.startAngle - Math.PI / 2);
-          });
+        .data(chord.chords)
+        .enter().append("linearGradient")
+        //Create a unique gradient id per chord: e.g. "chordGradient-0-4"
+        .attr("id", function (d) {
+          return "chordGradient-" + d.source.index + "-" + d.target.index;
+        })
+        //Instead of the object bounding box, use the entire SVG for setting this.objects
+        //in pixel this.objects instead of percentages (which is more typical)
+        .attr("gradientUnits", "userSpaceOnUse")
+        //The full mathematical formula to find the x and y this.objects
+        .attr("x1", function (d) {
+          return innerRadius * Math.cos((d.source.endAngle - d.source.startAngle) / 2 +
+            d.source.startAngle - Math.PI / 2);
+        })
+        .attr("y1", function (d) {
+          return innerRadius * Math.sin((d.source.endAngle - d.source.startAngle) / 2 +
+            d.source.startAngle - Math.PI / 2);
+        })
+        .attr("x2", function (d) {
+          return innerRadius * Math.cos((d.target.endAngle - d.target.startAngle) / 2 +
+            d.target.startAngle - Math.PI / 2);
+        })
+        .attr("y2", function (d) {
+          return innerRadius * Math.sin((d.target.endAngle - d.target.startAngle) / 2 +
+            d.target.startAngle - Math.PI / 2);
+        });
 
       //Set the starting color (at 0%)
       grads.append("stop")
-          .attr("offset", "0%")
-          .attr("stop-color", (d) => this.objects[d.source.index].Farbe);
+        .attr("offset", "0%")
+        .attr("stop-color", (d) => this.objects[d.source.index].Farbe);
 
       //Set the ending color (at 100%)
       grads.append("stop")
-          .attr("offset", "100%")
-          .attr("stop-color", (d) => this.objects[d.target.index].Farbe);
+        .attr("offset", "100%")
+        .attr("stop-color", (d) => this.objects[d.target.index].Farbe);
 
 
       /*//////////////////////////////////////////////////////////
@@ -467,7 +467,7 @@ export default {
             const angle = d.angle + ((3 * Math.PI) / 2);
             return Math.sin(angle);
           })
-
+  
           .attr("class", "titles")
           .style("font-size", "12px")
           .style("font-family", "sans-serif")
@@ -482,18 +482,18 @@ export default {
             var angle = d.angle + ((3 *Math.PI) / 2);
             var x = r * Math.cos(angle);
             var y = r * Math.sin(angle);
-
+  
             if (d.angle > Math.PI) {
               x -= dx;
             }
             else {
               x += dx;
             }
-
+  
             return "translate(" + x + ", " + y + ")";
           })
           */
-        /*Lines from labels to arcs*/
+      /*Lines from labels to arcs*/
       /*part in radial direction*/
       // this.g.append("line")
       /*
@@ -559,7 +559,7 @@ export default {
       /*
       const showChordToolTip = (chord) => {
         var prompt = "";
-
+  
         if (chord.source.index !== chord.target.index) {
           prompt += chord.source.value + " Kunden gingen von " +
               this.objects[chord.target.index].Name + " nach " +
@@ -573,28 +573,28 @@ export default {
           prompt += chord.source.value + " Kunden blieben in " +
               this.objects[chord.source.index].Name + ".";
         }
-
+  
         toolTip
             .style("opacity", 1)
             .html(prompt)
             .style("left", d3.event.pageX - toolTip.node().getBoundingClientRect().width / 2 + "px")
             .style("top", (d3.event.pageY - 50) + "px");
       }
-
+  
       const showArcToolTip = (arc) => {
         var prompt = Math.round(arc.value) + " Kunden befinden sich in " + this.objects[arc.index].Name + ".";
-
+  
         toolTip
             .style("opacity", 1)
             .html(prompt)
             .style("left", d3.event.pageX - toolTip.node().getBoundingClientRect().width / 2 + "px")
             .style("top", (d3.event.pageY - 30) + "px");
       }
-
+  
       function hideToolTip() {
         toolTip.style("opacity", 0);
       }
-
+  
       */
 
       ////////////////////////////////////////////////////////////
@@ -769,22 +769,22 @@ export default {
 
         function chord(d, i) {
           var s = subgroup(this, source, d, i),
-              t = subgroup(this, target, d, i);
+            t = subgroup(this, target, d, i);
 
           return "M" + s.p0
-              + arc(s.r, s.p1, s.a1 - s.a0) + (equals(s, t)
-                  ? curve(s.r, s.p1, s.a1, s.r, s.p0, s.a0)
-                  : curve(s.r, s.p1, s.a1, t.r, t.p0, t.a0)
-                  + arc(t.r, t.p1, t.a1 - t.a0)
-                  + curve(t.r, t.p1, t.a1, s.r, s.p0, s.a0))
-              + "Z";
+            + arc(s.r, s.p1, s.a1 - s.a0) + (equals(s, t)
+              ? curve(s.r, s.p1, s.a1, s.r, s.p0, s.a0)
+              : curve(s.r, s.p1, s.a1, t.r, t.p0, t.a0)
+              + arc(t.r, t.p1, t.a1 - t.a0)
+              + curve(t.r, t.p1, t.a1, s.r, s.p0, s.a0))
+            + "Z";
         }
 
         function subgroup(self, f, d, i) {
           var subgroup = f.call(self, d, i),
-              r = radius.call(self, subgroup, i),
-              a0 = startAngle.call(self, subgroup, i) - (Math.PI / 2),
-              a1 = endAngle.call(self, subgroup, i) - (Math.PI / 2);
+            r = radius.call(self, subgroup, i),
+            a0 = startAngle.call(self, subgroup, i) - (Math.PI / 2),
+            a1 = endAngle.call(self, subgroup, i) - (Math.PI / 2);
 
           return {
             r: r,
@@ -809,8 +809,8 @@ export default {
           var controlPoint1 = [p0[0] * radialControlPointScale, p0[1] * radialControlPointScale];
           var controlPoint2 = [p1[0] * radialControlPointScale, p1[1] * radialControlPointScale];
           return "C " + controlPoint1[0] + " " + controlPoint1[1] + ", " +
-              controlPoint2[0] + " " + controlPoint2[1] + ", " +
-              p1[0] + " " + p1[1];
+            controlPoint2[0] + " " + controlPoint2[1] + ", " +
+            p1[0] + " " + p1[1];
         }
 
         function mod(a, n) {
@@ -862,7 +862,7 @@ export default {
     },
   },
   watch: {
-    highlightItem: function(itemId) {
+    highlightItem: function (itemId) {
       const index = this.objects.findIndex(i => i.ID === itemId);
       index > -1 && this.highlightChords(index, false);
     }
