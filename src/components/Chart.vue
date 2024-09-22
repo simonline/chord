@@ -1,10 +1,13 @@
 <template>
   <v-container>
     <div id="chart">
-      <v-alert dismissible width="400" color="#766bf5" id="alert" border="left" icon="mdi-information" v-show="false"
-        colored-border light outlined>
-        <span></span>
-      </v-alert>
+      <div id="alerts">
+        <v-alert v-for="(alert) in visibleAlerts" :key="alert.index" dismissible width="400" :color="alert.color"
+          :id="'alert-' + alert.index" border="left" icon="mdi-information" colored-border light outlined>
+          <span v-html="alert.content"></span>
+        </v-alert>
+      </div>
+
 
     </div>
 
@@ -16,12 +19,15 @@
   position: relative !important;
 }
 
-#alert {
+#alerts {
   position: absolute !important;
   right: 0;
   bottom: 0;
-  font-size: 12px;
+}
+
+#alerts .v-alert {
   background-color: #fff !important;
+  font-size: 12px;
 }
 </style>
 
@@ -34,11 +40,26 @@ export default {
     svg: null,
     matrix: [],
     highlightedItems: [],
+    visibleAlerts: [],
   }),
   mounted() {
     this.drawChart();
   },
   methods: {
+    //Create alert with description
+    createAlert(index) {
+      const object = this.objects[index];
+      var content = [
+        `<strong>${object.Name}</strong>`,
+        object.Beschreibung,
+        `<i>${object.Familie}</i>`,
+      ].join("<br>");
+      return {
+        index: index,
+        color: object.Farbe,
+        content: content,
+      };
+    },
 
     //Update alert with description
     showAlert(index) {
@@ -155,14 +176,14 @@ export default {
       d3.selectAll(selector.join(", "))
         .transition().duration(500)
         .style("fill-opacity", "1");
-      d3.selectAll(items.map((i) => `#title-${i}`).join(", "))
-        .style("font-weight", "bold");
-
-      if (items.length === 1) {
-        this.showAlert(items[0]);
-      } else {
-        this.hideAlert();
+      if (permanent) {
+        d3.selectAll(items.map((i) => `#title-${i}`).join(", "))
+          .style("font-weight", "bold");
       }
+
+      // update visible alerts
+      this.visibleAlerts = items.map(index => this.createAlert(index));
+
     },
 
     showAllChords() {
@@ -175,6 +196,7 @@ export default {
         .style("fill-opacity", ".7");
 
       this.hideAlert();
+      this.visibleAlerts = []
     },
 
     hideAllChords() {
@@ -185,6 +207,7 @@ export default {
     },
 
     drawChart() {
+      var self = this;
       this.matrix = new Array(this.objects.length).fill().map(
         () => new Array(this.objects.length).fill().map(() => 0)
       );
@@ -230,7 +253,10 @@ export default {
       //D3.js v3!
       var svg = root.append("svg:svg")
         .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom);
+        .attr("height", height + margin.top + margin.bottom)
+        .on("click", function () {
+          self.showAllChords();
+        });
 
       var container = svg.append("g")
         .attr("transform", "translate(" +
@@ -243,6 +269,7 @@ export default {
         .sortSubgroups(d3.descending) /*sort the chords inside an arc from high to low*/
         .sortChords(d3.ascending) /*which chord should be shown on top when chords cross. Now the largest chord is at the top*/
         .matrix(this.matrix);
+
 
       /*//////////////////////////////////////////////////////////
       ////////////////// Draw outer Arcs /////////////////////////
@@ -266,9 +293,11 @@ export default {
         .style("fill", (d) => this.objects[d.index].Farbe)
         .style("cursor", "pointer")
         // .style("stroke", (d) => d3.rgb(this.objects[d.index].Farbe).brighter())
-        .on("click", (d) => this.highlightChords(d.index))
+        .on("click", (d) => {
+          d3.event.stopPropagation();
+          this.highlightChords(d.index)
+        })
         .on("mouseover", (d) => {
-          console.log(d.index);
           this.highlightChords(d.index, false)
         });
       // .on("click", function () { })
@@ -297,9 +326,11 @@ export default {
         .style("cursor", "pointer")
         .attr("fill", "#333")
         .text((d, i) => this.objects[i].Name)
-        .on("click", (d) => this.highlightChords(d.index))
+        .on("click", (d) => {
+          d3.event.stopPropagation();
+          this.highlightChords(d.index);
+        })
         .on("mouseover", (d) => {
-          console.log(d.index);
           this.highlightChords(d.index, false)
         });
 
