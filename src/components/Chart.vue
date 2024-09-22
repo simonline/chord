@@ -61,30 +61,6 @@ export default {
       };
     },
 
-    //Update alert with description
-    showAlert(index) {
-      const alert = document.getElementById("alert");
-      const object = this.objects[index];
-      const border = alert.getElementsByClassName("v-alert__border")[0];
-      const icon = alert.getElementsByClassName("mdi-close-circle")[0];
-      border.style.borderColor = object.Farbe;
-      icon.style.color = object.Farbe;
-      icon.style.caretColor = object.Farbe;
-      var content = [
-        `<strong>${object.Name}</strong>`,
-        object.Beschreibung,
-        `<i>${object.Familie}</i>`,
-      ];
-      alert.getElementsByTagName('span')[0].innerHTML = content.join("<br>");
-      alert.style.display = "block";
-    },
-
-    //Hide alert with description
-    hideAlert() {
-      const alert = document.getElementById("alert");
-      alert.style.display = "none";
-    },
-
     //Hides all chords except the chords connecting to the subgroup /
     //location of the given index.
     highlightChords(index, permanent = true) {
@@ -195,7 +171,6 @@ export default {
         .transition().duration(500)
         .style("fill-opacity", ".7");
 
-      this.hideAlert();
       this.visibleAlerts = []
     },
 
@@ -204,6 +179,7 @@ export default {
         .transition().duration(500)
         .style("fill-opacity", ".1")
         .style("font-weight", "normal");
+      this.visibleAlerts = []
     },
 
     drawChart() {
@@ -255,6 +231,7 @@ export default {
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .on("click", function () {
+          self.highlightedItems = [];
           self.showAllChords();
         });
 
