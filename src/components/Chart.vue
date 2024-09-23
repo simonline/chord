@@ -100,28 +100,39 @@ export default {
 
       let selector = [];
       if (this.indirect && items.length === 2) {
-        // Select only relations linking between the two items
-        for (const sourceItem of items) {
+        // Select direct/indirect relations linking between the two items
+        const [item1, item2] = items;
+        selector.push(...[
+          `#title-${item1}`,
+          `#arc-${item1}`,
+          `#title-${item2}`,
+          `#arc-${item2}`,
+        ]);
+
+        const item1Rels = getRelations(item1);
+        const item2Rels = getRelations(item2);
+
+        // Check for direct connection between item1 and item2
+        if (item1Rels.includes(item2)) {
+          // There is a direct connection between item1 and item2
           selector.push(...[
-            `#title-${sourceItem}`,
-            `#arc-${sourceItem}`,
+            `.chord-source-${item1}.chord-target-${item2}`,
+            `.chord-source-${item2}.chord-target-${item1}`,
           ]);
-          const sourceRels = getRelations(sourceItem);
-          for (const targetItem of items) {
-            if (sourceItem === targetItem) continue;
-            const targetRels = getRelations(targetItem);
-            const intersections = sourceRels.filter(value => targetRels.includes(value));
-            for (const intersection of intersections) {
-              selector.push(...[
-                `#title-${intersection}`,
-                `#arc-${intersection}`,
-                `.chord-source-${sourceItem}.chord-target-${intersection}`,
-                `.chord-source-${targetItem}.chord-target-${intersection}`,
-                `.chord-source-${intersection}.chord-target-${sourceItem}`,
-                `.chord-source-${intersection}.chord-target-${targetItem}`,
-              ]);
-            }
-          }
+        }
+      
+        // Find common relations (indirect connections)
+        const intersections = item1Rels.filter(value => item2Rels.includes(value));
+        for (const intersection of intersections) {
+          if (intersection === item1 || intersection === item2) continue; // Skip the selected items
+          selector.push(...[
+            `#title-${intersection}`,
+            `#arc-${intersection}`,
+            `.chord-source-${item1}.chord-target-${intersection}`,
+            `.chord-source-${item2}.chord-target-${intersection}`,
+            `.chord-source-${intersection}.chord-target-${item1}`,
+            `.chord-source-${intersection}.chord-target-${item2}`,
+          ]);
         }
       } else {
         for (const item of items) {
